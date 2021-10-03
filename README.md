@@ -25,8 +25,8 @@ Or install it yourself as:
 The `Pcloud::Client` can be configured by directly calling the `Pcloud::Client.configure` method in an initializer or somewhere else in your code at startup:
 ```ruby
 Pcloud::Client.configure(
-	access_token: "your-pcloud-app-access-token",
-	data_region: "EU"
+  access_token: "your-pcloud-app-access-token",
+  data_region: "EU"
 )
 ```
 
@@ -44,9 +44,9 @@ Pcloud::File.find_by(path: "/images/jack_the_cat.jpg")
 
 # Upload a new file, rename if already existing:
 Pcloud::File.upload(
-	folder_id: 1,
-	filename: "jack_goes_swimming.mp4",
-	file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
+  folder_id: 1,
+  filename: "jack_goes_swimming.mp4",
+  file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
 )
 # NOTE: the upload method will allow you to specify either the `path` or the
 # `folder_id`, or you can choose to pass neither paramenter and your files will
@@ -54,9 +54,9 @@ Pcloud::File.upload(
 
 # Upload a file, force overwrite of existing file:
 Pcloud::File.upload!(
-	folder_id: 1,
-	filename: "jack_goes_swimming.mp4",
-	file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
+  folder_id: 1,
+  filename: "jack_goes_swimming.mp4",
+  file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
 )
 
 # Rename a file:
@@ -106,16 +106,18 @@ jack_images.parent_folder
 jack_images.contents
 ```
 
-**Aside: path vs id:**
+**Aside: path vs id**
+
 pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
 
 
-**Aside: off-label client use:**
+**Aside: off-label client use**
+
 The `Pcloud::File` and `Pcloud::Folder` APIs cover the most important, common functionality developers will want to access in a way that is easy to use without much onboarding. If you find that you still need to access other parts of the pCloud API that are not included in this gem yet, you can try calling other methods specified in [the pCloud API docs](https://docs.pcloud.com/) by interacting directly with the `Pcloud::Client`:
 ```ruby
 Pcloud::Client.execute("listrevisions", query: { fileid: 90000 })
 ```
-_(There are a few methods on the raw pCloud API that require manual login, which this gem does not yet support. If you find that you need access to these methods you may wish to look at using the [`pcloud`](https://github.com/7urkm3n/pcloud) gem instead.)
+_(There are a few methods on the raw pCloud API that require manual login, which this gem does not yet support. If you find that you need access to these methods you may wish to look at using the [`pcloud`](https://github.com/7urkm3n/pcloud) gem instead.)_
 
 ### Generating an access token
 
