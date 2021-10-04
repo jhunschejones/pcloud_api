@@ -4,7 +4,9 @@ module Pcloud
     class ManformedUpdateParams < StandardError; end
     class InvalidParameter < StandardError; end
     class UploadFailed < StandardError; end
+
     include Parser
+    include Pcloud::TimeHelper
 
     SUPPORTED_UPDATE_PARAMS = [:name, :parent_folder_id, :path].freeze
     FILE_CATAGORIES = {
@@ -28,8 +30,8 @@ module Pcloud
       @size = params.fetch(:size) # bytes
       @parent_folder_id = params.fetch(:parent_folder_id)
       @is_deleted = params.fetch(:is_deleted) || false
-      @created_at = params.fetch(:created_at)
-      @modified_at = params.fetch(:modified_at)
+      @created_at = time_from(params.fetch(:created_at))
+      @modified_at = time_from(params.fetch(:modified_at))
     end
 
     def update(params)
@@ -73,7 +75,7 @@ module Pcloud
     private
 
     def is_invalid_path_param?(path_param)
-      # Path params have to start and end with `/``
+      # Path params have to start and end with `/`
       [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
