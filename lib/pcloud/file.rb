@@ -88,29 +88,29 @@ module Pcloud
         parse_one(Client.execute("stat", query: { path: path }))
       end
 
-      def upload(filename:, file:, path: nil, folder_id: nil)
+      def upload(params)
         process_upload(
-          filename: filename,
-          file: file,
-          path: path,
-          folder_id: folder_id
+          filename: params.fetch(:filename),
+          file: params.fetch(:file),
+          path: params[:path],
+          folder_id: params[:folder_id]
         )
       end
 
-      def upload!(filename:, file:, path: nil, folder_id: nil)
+      def upload!(params)
         process_upload(
-          filename: filename,
-          file: file,
-          path: path,
-          folder_id: folder_id,
+          filename: params.fetch(:filename),
+          file: params.fetch(:file),
+          path: params[:path],
+          folder_id: params[:folder_id],
           overwrite: true
         )
       end
 
       private
 
-      def process_upload(filename:, file:, path: nil, folder_id: nil, overwrite: false)
-        raise InvalidParameter.new("The `file` parameter must be an instance of Ruby `File`") unless file.is_a?(::File)
+      def process_upload(params)
+        raise InvalidParameter.new("The `file` parameter must be an instance of Ruby `File`") unless params.fetch(:file).is_a?(::File)
 
         # === pCloud API behavior notes: ===
         # 1. If neither `path` nor `folder_id` is provided, the file will be
@@ -120,11 +120,11 @@ module Pcloud
         response = Client.execute(
           "uploadfile",
           body: {
-            renameifexists: overwrite ? 0 : 1,
-            path: path,
-            folderid: folder_id,
-            filename: filename,
-            file: file
+            renameifexists: params[:overwrite] ? 0 : 1,
+            path: params[:path],
+            folderid: params[:folder_id],
+            filename: params.fetch(:filename),
+            file: params.fetch(:file)
           }.compact,
         )
         # This method on the pCloud API can accept multiple uploads at once.
