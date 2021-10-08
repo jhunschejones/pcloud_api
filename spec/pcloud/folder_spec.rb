@@ -439,8 +439,8 @@ RSpec.describe Pcloud::Folder do
         expect {
           Pcloud::Folder.first_or_create(name: "jacks_folder")
         }.to raise_error(
-          Pcloud::Folder::InvalidCreateParams,
-          "first_or_create must be called with either `path` or both `parent_folder_id` and `name` params"
+          Pcloud::Folder::InvalidParameters,
+          "either :path or a combination of :parent_folder_id and :name params are required"
         )
       end
     end
@@ -604,10 +604,19 @@ RSpec.describe Pcloud::Folder do
       expect(contents.last).to be_a(Pcloud::Folder)
     end
 
-    it "raises MissingParameter with invalid parameters" do
+    it "raises MissingParameter with missing parameters" do
       expect {
         Pcloud::Folder.find_by(feeling: "happy")
       }.to raise_error(Pcloud::Folder::MissingParameter, ":path or :id is required")
+    end
+
+    it "raises InvalidParameters with invalid parameters" do
+      expect {
+        Pcloud::Folder.find_by(path: "/jacks_folder", id: 9000)
+      }.to raise_error(
+        Pcloud::Folder::InvalidParameters,
+        ":id takes precedent over :path, please only use one or the other"
+      )
     end
   end
 end

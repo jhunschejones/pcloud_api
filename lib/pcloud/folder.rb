@@ -2,7 +2,7 @@ module Pcloud
   class Folder
     class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
-    class InvalidCreateParams < StandardError; end
+    class InvalidParameters < StandardError; end
     class MissingParameter < StandardError; end
 
     include Parser
@@ -31,19 +31,9 @@ module Pcloud
     end
 
     def update(params)
-      unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
-        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
-      end
-      if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
-      end
-      query = {
-        folderid: id,
-        tofolderid: params[:parent_folder_id] || nil,
-        toname: params[:name] || nil,
-        topath: params[:path] || nil
-      }.compact
-      parse_one(Client.execute("renamefolder", query: query))
+      # if params[:path] && find_by(path: params[:path])
+      # # if find_by(params)
+      process_update(params)
     end
 
     # This method is the safest way to delte folders and will fail if the folder
@@ -79,6 +69,22 @@ module Pcloud
       [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
+    def process_update(params)
+      unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
+        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
+      end
+      if params[:path] && is_invalid_path_param?(params[:path])
+        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
+      end
+      query = {
+        folderid: id,
+        tofolderid: params[:parent_folder_id] || nil,
+        toname: params[:name] || nil,
+        topath: params[:path] || nil
+      }.compact
+      parse_one(Client.execute("renamefolder", query: query))
+    end
+
     class << self
       def first_or_create(params)
         if params[:parent_folder_id] && params[:name]
@@ -86,7 +92,7 @@ module Pcloud
         elsif params[:path]
           parse_one(Client.execute("createfolderifnotexists", query: { path: params[:path] }))
         else
-          raise InvalidCreateParams.new("first_or_create must be called with either `path` or both `parent_folder_id` and `name` params")
+          raise InvalidParameters.new("either :path or a combination of :parent_folder_id and :name params are required")
         end
       end
 
@@ -104,6 +110,7 @@ module Pcloud
 
       def find_by(params)
         raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
         parse_one(
           Client.execute(
             "listfolder",

@@ -1,8 +1,8 @@
 module Pcloud
   class File
-    class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
     class InvalidParameter < StandardError; end
+    class InvalidParameters < StandardError; end
     class MissingParameter < StandardError; end
     class UploadFailed < StandardError; end
 
@@ -37,10 +37,10 @@ module Pcloud
 
     def update(params)
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
-        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
+        raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
       if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
+        raise ManformedUpdateParams.new(":path param must start and end with `/`")
       end
       query = {
         fileid: id,
@@ -95,6 +95,7 @@ module Pcloud
 
       def find_by(params)
         raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
         parse_one(
           Client.execute(
             "stat",
