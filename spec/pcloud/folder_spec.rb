@@ -217,19 +217,20 @@ RSpec.describe Pcloud::Folder do
     end
 
     context "with unsuported update params" do
-      it "raises UnsuportedUpdateParams and does not make a web request" do
+      it "raises InvalidParameters and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
           jacks_folder.update(coolness_points: 1000000000)
-        }.to raise_error(Pcloud::Folder::UnsuportedUpdateParams, "Must be one of [:name, :parent_folder_id, :path]")
+        }.to raise_error(Pcloud::Folder::InvalidParameters, "Must be one of [:name, :parent_folder_id, :path]")
       end
     end
 
-    context "with malformed update params" do
-      it "raises ManformedUpdateParams and does not make a web request" do
+    context "with poorly formed path parameter" do
+      it "raises InvalidParameter and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
         expect {
           jacks_folder.update(path: "/jack_images")
-        }.to raise_error(Pcloud::Folder::ManformedUpdateParams, ":path param must start and end with `/`")
+        }.to raise_error(Pcloud::Folder::InvalidParameter, ":path parameter must start and end with `/`")
       end
     end
   end
@@ -604,19 +605,25 @@ RSpec.describe Pcloud::Folder do
       expect(contents.last).to be_a(Pcloud::Folder)
     end
 
-    it "raises MissingParameter with missing parameters" do
-      expect {
-        Pcloud::Folder.find_by(feeling: "happy")
-      }.to raise_error(Pcloud::Folder::MissingParameter, ":path or :id is required")
+    context "with invalid parameters" do
+      it "raises InvalidParameters and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
+        expect {
+          Pcloud::Folder.find_by(feeling: "happy")
+        }.to raise_error(Pcloud::Folder::InvalidParameters, "Must be one of [:id, :path]")
+      end
     end
 
-    it "raises InvalidParameters with invalid parameters" do
-      expect {
-        Pcloud::Folder.find_by(path: "/jacks_folder", id: 9000)
-      }.to raise_error(
-        Pcloud::Folder::InvalidParameters,
-        ":id takes precedent over :path, please only use one or the other"
-      )
+    context "when both path and id parameters are passed" do
+      it "raises InvalidParameters and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
+        expect {
+          Pcloud::Folder.find_by(path: "/jacks_folder", id: 9000)
+        }.to raise_error(
+          Pcloud::Folder::InvalidParameters,
+          ":id takes precedent over :path, please only use one or the other"
+        )
+      end
     end
   end
 end

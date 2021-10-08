@@ -1,6 +1,5 @@
 module Pcloud
   class File
-    class ManformedUpdateParams < StandardError; end
     class InvalidParameter < StandardError; end
     class InvalidParameters < StandardError; end
     class MissingParameter < StandardError; end
@@ -10,6 +9,7 @@ module Pcloud
     include Pcloud::TimeHelper
 
     SUPPORTED_UPDATE_PARAMS = [:name, :parent_folder_id, :path].freeze
+    SUPPORTED_FIND_BY_PARAMS = [:id, :path].freeze
     FILE_CATAGORIES = {
       "0" => "uncategorized",
       "1" => "image",
@@ -39,8 +39,8 @@ module Pcloud
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
         raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
-      if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new(":path param must start and end with `/`")
+      if params[:path] && is_invalid_path_update_param?(params[:path])
+        raise InvalidParameter.new(":path param must start and end with `/`")
       end
       query = {
         fileid: id,
@@ -75,8 +75,8 @@ module Pcloud
 
     private
 
-    def is_invalid_path_param?(path_param)
-      # Path params have to start and end with `/`
+    def is_invalid_path_update_param?(path_param)
+      # Path params have to start and end with `/` when used with .update
       [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
@@ -94,14 +94,12 @@ module Pcloud
       end
 
       def find_by(params)
-        raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        unless (params.keys - SUPPORTED_FIND_BY_PARAMS).empty?
+          raise InvalidParameters.new("Must be one of #{SUPPORTED_FIND_BY_PARAMS}")
+        end
         raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
-        parse_one(
-          Client.execute(
-            "stat",
-            query: { path: params[:path], fileid: params[:id] }.compact
-          )
-        )
+        query = { path: params[:path], fileid: params[:id] }.compact
+        parse_one(Client.execute("stat", query: query))
       end
 
       def upload(params)
@@ -116,7 +114,7 @@ module Pcloud
 
       def process_upload(params)
         file = params.fetch(:file)
-        raise InvalidParameter.new("The `file` parameter must be an instance of Ruby `File`") unless file.is_a?(::File)
+        raise InvalidParameter.new("The :file parameter must be an instance of Ruby `File`") unless file.is_a?(::File)
 
         # === pCloud API behavior notes: ===
         # 1. If neither `path` nor `folder_id` is provided, the file will be

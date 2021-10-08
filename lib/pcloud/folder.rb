@@ -1,7 +1,6 @@
 module Pcloud
   class Folder
-    class UnsuportedUpdateParams < StandardError; end
-    class ManformedUpdateParams < StandardError; end
+    class InvalidParameter < StandardError; end
     class InvalidParameters < StandardError; end
     class MissingParameter < StandardError; end
 
@@ -9,6 +8,7 @@ module Pcloud
     include Pcloud::TimeHelper
 
     SUPPORTED_UPDATE_PARAMS = [:name, :parent_folder_id, :path].freeze
+    SUPPORTED_FIND_BY_PARAMS = [:id, :path].freeze
 
     attr_reader :id, :path, :name, :parent_folder_id, :is_deleted, :created_at,
                 :modified_at
@@ -32,10 +32,10 @@ module Pcloud
 
     def update(params)
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
-        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
+        raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
       if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new(":path param must start and end with `/`")
+        raise InvalidParameter.new(":path parameter must start and end with `/`")
       end
       query = {
         folderid: id,
@@ -103,7 +103,9 @@ module Pcloud
       end
 
       def find_by(params)
-        raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        unless (params.keys - SUPPORTED_FIND_BY_PARAMS).empty?
+          raise InvalidParameters.new("Must be one of #{SUPPORTED_FIND_BY_PARAMS}")
+        end
         raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
         parse_one(
           Client.execute(
