@@ -225,7 +225,7 @@ RSpec.describe Pcloud::Folder do
       end
     end
 
-    context "with poorly formed path parameter" do
+    context "with incorrectly formed path parameter" do
       it "raises InvalidParameter and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {

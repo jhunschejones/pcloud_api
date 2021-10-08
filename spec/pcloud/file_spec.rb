@@ -173,7 +173,7 @@ RSpec.describe Pcloud::File do
       end
     end
 
-    context "with malformed update params" do
+    context "with incorrectly formed update params" do
       it "raises InvalidParameter and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
