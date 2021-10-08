@@ -116,13 +116,7 @@ module Pcloud
 
       def process_upload(params)
         file = params.fetch(:file)
-        mtime = params[:modified_at]
-        ctime = params[:created_at]
         raise InvalidParameter.new("The `file` parameter must be an instance of Ruby `File`") unless file.is_a?(::File)
-        raise InvalidParameter.new(":modified_at must be an instance of Ruby `Time`") if mtime && !mtime.is_a?(::Time)
-        raise InvalidParameter.new(":created_at must be an instance of Ruby `Time`") if ctime && !ctime.is_a?(::Time)
-        # Pcloud `ctime` param requires `mtime` to be present, but not the other way around
-        raise MissingParameter.new(":created_at requires :modified_at to also be present") if ctime && !mtime
 
         # === pCloud API behavior notes: ===
         # 1. If neither `path` nor `folder_id` is provided, the file will be
@@ -137,8 +131,6 @@ module Pcloud
             folderid: params[:folder_id],
             filename: params.fetch(:filename),
             file: file,
-            mtime: mtime&.utc&.to_i, # must be in unix seconds
-            ctime: ctime&.utc&.to_i, # must be in unix seconds
           }.compact,
         )
         # This method on the pCloud API can accept multiple uploads at once.
