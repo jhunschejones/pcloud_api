@@ -107,12 +107,8 @@ module Pcloud
           raise InvalidParameters.new("Must be one of #{SUPPORTED_FIND_BY_PARAMS}")
         end
         raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
-        parse_one(
-          Client.execute(
-            "listfolder",
-            query: { path: params[:path], folderid: params[:id] }.compact
-          )
-        )
+        query = { path: params[:path], folderid: params[:id] }.compact
+        parse_one(Client.execute("listfolder", query: query))
       end
     end
   end
