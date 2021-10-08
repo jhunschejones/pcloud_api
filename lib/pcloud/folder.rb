@@ -31,9 +31,19 @@ module Pcloud
     end
 
     def update(params)
-      # if params[:path] && find_by(path: params[:path])
-      # # if find_by(params)
-      process_update(params)
+      unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
+        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
+      end
+      if params[:path] && is_invalid_path_param?(params[:path])
+        raise ManformedUpdateParams.new(":path param must start and end with `/`")
+      end
+      query = {
+        folderid: id,
+        tofolderid: params[:parent_folder_id] || nil,
+        toname: params[:name] || nil,
+        topath: params[:path] || nil
+      }.compact
+      parse_one(Client.execute("renamefolder", query: query))
     end
 
     # This method is the safest way to delte folders and will fail if the folder
@@ -67,22 +77,6 @@ module Pcloud
     def is_invalid_path_param?(path_param)
       # Path params have to start and end with `/`
       [path_param[0], path_param[-1]] != ["/", "/"]
-    end
-
-    def process_update(params)
-      unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
-        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
-      end
-      if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
-      end
-      query = {
-        folderid: id,
-        tofolderid: params[:parent_folder_id] || nil,
-        toname: params[:name] || nil,
-        topath: params[:path] || nil
-      }.compact
-      parse_one(Client.execute("renamefolder", query: query))
     end
 
     class << self

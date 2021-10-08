@@ -229,7 +229,7 @@ RSpec.describe Pcloud::Folder do
       it "raises ManformedUpdateParams and does not make a web request" do
         expect {
           jacks_folder.update(path: "/jack_images")
-        }.to raise_error(Pcloud::Folder::ManformedUpdateParams, "`path` param must start and end with `/`")
+        }.to raise_error(Pcloud::Folder::ManformedUpdateParams, ":path param must start and end with `/`")
       end
     end
   end
