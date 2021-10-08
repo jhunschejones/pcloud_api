@@ -1,7 +1,7 @@
 ## 0.2.1 2021-10-07
 
 **Changes**
-  1. Simplifying and cleaning up the errors returned from `Pcloud::Folder` and `Pcloud::File`
+  1. Simplifying the errors returned from `Pcloud::Folder` and `Pcloud::File`. This is purely a cleanup release, unless your client is explicitly checking error strings there should be no noticeable behavior change 👍🏻 
 
 ## 0.2.0 2021-10-07
 
