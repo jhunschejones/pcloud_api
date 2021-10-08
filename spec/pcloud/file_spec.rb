@@ -396,8 +396,20 @@ RSpec.describe Pcloud::File do
       allow(Pcloud::Client).to receive(:execute).and_return(upload_response)
     end
 
+    it "requires a file param" do
+      expect {
+        Pcloud::File.upload(my_file: "sleepy_cat.jpg")
+      }.to raise_error(Pcloud::File::MissingParameter, ":file is required")
+    end
+
     context "with a valid file object" do
       let(:sleepy_cat_image_file) { File.open("spec/fixtures/sleepy_cat.jpg") }
+
+      it "requires a filename param" do
+        expect {
+          Pcloud::File.upload(file: sleepy_cat_image_file)
+        }.to raise_error(Pcloud::File::MissingParameter, ":filename is required")
+      end
 
       it "makes an uploadfile request" do
         expect(Pcloud::Client)
@@ -430,6 +442,79 @@ RSpec.describe Pcloud::File do
         expect(response).to be_a(Pcloud::File)
         expect(response.id).to eq(100100)
         expect(response.name).to eq("sleepy_cat.jpg")
+      end
+
+      context "when passing created_at and modified_at times" do
+        it "raises for invalid created_at time" do
+          expect {
+            Pcloud::File.upload(
+              filename: "sleepy_cat.jpg",
+              file: sleepy_cat_image_file,
+              path: "/",
+              folder_id: 0,
+              created_at: "made it right now"
+            )
+          }.to raise_error(
+            Pcloud::File::InvalidParameter,
+            ":created_at must be an instance of Ruby `Time`"
+          )
+        end
+
+        it "raises for invalid modified_at time" do
+          expect {
+            Pcloud::File.upload(
+              filename: "sleepy_cat.jpg",
+              file: sleepy_cat_image_file,
+              path: "/",
+              folder_id: 0,
+              modified_at: "I just changed this file"
+            )
+          }.to raise_error(
+            Pcloud::File::InvalidParameter,
+            ":modified_at must be an instance of Ruby `Time`"
+          )
+        end
+
+        it "raises for created_at time without modified_at time" do
+          expect {
+            Pcloud::File.upload(
+              filename: "sleepy_cat.jpg",
+              file: sleepy_cat_image_file,
+              path: "/",
+              folder_id: 0,
+              created_at: Time.now
+            )
+          }.to raise_error(
+            Pcloud::File::MissingParameter,
+            ":created_at parameter also requires :modified_at parameter to also be present"
+          )
+        end
+
+        it "makes an uploadfile request including timestamps" do
+          test_time = Time.now
+          expect(Pcloud::Client)
+            .to receive(:execute)
+            .with(
+              "uploadfile",
+              body: {
+                renameifexists: 1,
+                path: "/",
+                folderid: 0,
+                filename: "sleepy_cat.jpg",
+                file: sleepy_cat_image_file,
+                ctime: test_time.utc.to_i,
+                mtime: test_time.utc.to_i
+              }
+            )
+          Pcloud::File.upload(
+            filename: "sleepy_cat.jpg",
+            file: sleepy_cat_image_file,
+            path: "/",
+            folder_id: 0,
+            created_at: test_time,
+            modified_at: test_time
+          )
+        end
       end
 
       context "when the file upload fails" do

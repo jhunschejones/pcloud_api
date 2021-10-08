@@ -3,8 +3,11 @@ module Pcloud
     class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
     class InvalidParameter < StandardError; end
+    class MissingParameter < StandardError; end
     class UploadFailed < StandardError; end
+
     include Parser
+    include Pcloud::TimeHelper
 
     SUPPORTED_UPDATE_PARAMS = [:name, :parent_folder_id, :path].freeze
     FILE_CATAGORIES = {
@@ -28,8 +31,8 @@ module Pcloud
       @size = params.fetch(:size) # bytes
       @parent_folder_id = params.fetch(:parent_folder_id)
       @is_deleted = params.fetch(:is_deleted) || false
-      @created_at = params.fetch(:created_at)
-      @modified_at = params.fetch(:modified_at)
+      @created_at = time_from(params.fetch(:created_at))
+      @modified_at = time_from(params.fetch(:modified_at))
     end
 
     def update(params)
@@ -73,7 +76,7 @@ module Pcloud
     private
 
     def is_invalid_path_param?(path_param)
-      # Path params have to start and end with `/``
+      # Path params have to start and end with `/`
       [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
@@ -86,29 +89,25 @@ module Pcloud
         parse_one(Client.execute("stat", query: { path: path }))
       end
 
-      def upload(filename:, file:, path: nil, folder_id: nil)
-        process_upload(
-          filename: filename,
-          file: file,
-          path: path,
-          folder_id: folder_id
-        )
+      def upload(params)
+        process_upload(params)
       end
 
-      def upload!(filename:, file:, path: nil, folder_id: nil)
-        process_upload(
-          filename: filename,
-          file: file,
-          path: path,
-          folder_id: folder_id,
-          overwrite: true
-        )
+      def upload!(params)
+        process_upload(params.merge({ overwrite: true }))
       end
 
       private
 
-      def process_upload(filename:, file:, path: nil, folder_id: nil, overwrite: false)
+      def process_upload(params)
+        file = params.fetch(:file)
+        mtime = params[:modified_at]
+        ctime = params[:created_at]
         raise InvalidParameter.new("The `file` parameter must be an instance of Ruby `File`") unless file.is_a?(::File)
+        raise InvalidParameter.new(":modified_at must be an instance of Ruby `Time`") if mtime && !mtime.is_a?(::Time)
+        raise InvalidParameter.new(":created_at must be an instance of Ruby `Time`") if ctime && !ctime.is_a?(::Time)
+        # Pcloud `ctime` param requires `mtime` to be present, but not the other way around
+        raise MissingParameter.new(":created_at parameter also requires :modified_at parameter to also be present") if ctime && !mtime
 
         # === pCloud API behavior notes: ===
         # 1. If neither `path` nor `folder_id` is provided, the file will be
@@ -118,11 +117,13 @@ module Pcloud
         response = Client.execute(
           "uploadfile",
           body: {
-            renameifexists: overwrite ? 0 : 1,
-            path: path,
-            folderid: folder_id,
-            filename: filename,
-            file: file
+            renameifexists: params[:overwrite] ? 0 : 1,
+            path: params[:path],
+            folderid: params[:folder_id],
+            filename: params.fetch(:filename),
+            file: file,
+            mtime: mtime&.utc&.to_i, # must be in unix seconds
+            ctime: ctime&.utc&.to_i, # must be in unix seconds
           }.compact,
         )
         # This method on the pCloud API can accept multiple uploads at once.
@@ -131,6 +132,9 @@ module Pcloud
         uploaded_file = parse_many(response).first
         raise UploadFailed if uploaded_file.nil?
         return uploaded_file
+      rescue KeyError => e
+        missing_param = e.message.gsub("key not found: ", "")
+        raise MissingParameter.new("#{missing_param} is required")
       end
     end
   end
