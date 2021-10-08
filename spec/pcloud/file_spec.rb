@@ -174,10 +174,11 @@ RSpec.describe Pcloud::File do
     end
 
     context "with malformed update params" do
-      it "raises ManformedUpdateParams and does not make a web request" do
+      it "raises InvalidParameter and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
         expect {
           cat_photo.update(path: "/images")
-        }.to raise_error(Pcloud::File::ManformedUpdateParams, ":path param must start and end with `/`")
+        }.to raise_error(Pcloud::File::InvalidParameter, ":path param must start and end with `/`")
       end
     end
   end
@@ -403,19 +404,25 @@ RSpec.describe Pcloud::File do
       expect(response.name).to eq(cat_photo.name)
     end
 
-    it "raises MissingParameter with missing parameters" do
-      expect {
-        Pcloud::File.find_by(feeling: "happy")
-      }.to raise_error(Pcloud::File::MissingParameter, ":path or :id is required")
+    context "with invalid parameters" do
+      it "raises InvalidParameters and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
+        expect {
+          Pcloud::File.find_by(feeling: "happy")
+        }.to raise_error(Pcloud::File::InvalidParameters, "Must be one of [:id, :path]")
+      end
     end
 
-    it "raises InvalidParameters with invalid parameters" do
-      expect {
-        Pcloud::File.find_by(path: "/cats.jpg", id: 100100)
-      }.to raise_error(
-        Pcloud::File::InvalidParameters,
-        ":id takes precedent over :path, please only use one or the other"
-      )
+    context "when both id and path parameters are provided" do
+      it "raises InvalidParameters and does not make a web request" do
+        expect(Pcloud::Client).to receive(:execute).never
+        expect {
+          Pcloud::File.find_by(path: "/cats.jpg", id: 100100)
+        }.to raise_error(
+          Pcloud::File::InvalidParameters,
+          ":id takes precedent over :path, please only use one or the other"
+        )
+      end
     end
   end
 
@@ -517,7 +524,7 @@ RSpec.describe Pcloud::File do
             path: "/",
             folder_id: 0
           )
-        }.to raise_error(Pcloud::File::InvalidParameter, "The `file` parameter must be an instance of Ruby `File`")
+        }.to raise_error(Pcloud::File::InvalidParameter, "The :file parameter must be an instance of Ruby `File`")
       end
     end
   end
@@ -608,7 +615,7 @@ RSpec.describe Pcloud::File do
             path: "/",
             folder_id: 0
           )
-        }.to raise_error(Pcloud::File::InvalidParameter, "The `file` parameter must be an instance of Ruby `File`")
+        }.to raise_error(Pcloud::File::InvalidParameter, "The :file parameter must be an instance of Ruby `File`")
       end
     end
   end
