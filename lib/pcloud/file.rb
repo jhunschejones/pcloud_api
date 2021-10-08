@@ -90,7 +90,7 @@ module Pcloud
       end
 
       def find(id)
-        find_by(id: id)
+        parse_one(Client.execute("stat", query: { fileid: id }))
       end
 
       def find_by(params)
