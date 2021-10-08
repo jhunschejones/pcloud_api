@@ -229,7 +229,7 @@ RSpec.describe Pcloud::Folder do
       it "raises ManformedUpdateParams and does not make a web request" do
         expect {
           jacks_folder.update(path: "/jack_images")
-        }.to raise_error(Pcloud::Folder::ManformedUpdateParams, "`path` param must start and end with `/`")
+        }.to raise_error(Pcloud::Folder::ManformedUpdateParams, ":path param must start and end with `/`")
       end
     end
   end
@@ -439,14 +439,45 @@ RSpec.describe Pcloud::Folder do
         expect {
           Pcloud::Folder.first_or_create(name: "jacks_folder")
         }.to raise_error(
-          Pcloud::Folder::InvalidCreateParams,
-          "first_or_create must be called with either `path` or both `parent_folder_id` and `name` params"
+          Pcloud::Folder::InvalidParameters,
+          "either :path or a combination of :parent_folder_id and :name params are required"
         )
       end
     end
   end
 
-  describe "#find" do
+  describe ".exists?" do
+    it "calls .find" do
+      expect(Pcloud::Folder).to receive(:find).with(1)
+      Pcloud::Folder.exists?(1)
+    end
+
+    it "returns false when no folder is found" do
+      allow(Pcloud::Folder)
+        .to receive(:find)
+        .with(1)
+        .and_raise(Pcloud::Client::ErrorResponse.new("Directory does not exist."))
+      expect(Pcloud::Folder.exists?(1)).to eq(false)
+    end
+
+    it "returns true when a folder is found" do
+      allow(Pcloud::Folder).to receive(:find).and_return(jacks_folder)
+      expect(Pcloud::Folder.exists?(1)).to eq(true)
+    end
+
+    it "re-raises unexpected errors" do
+      expected_error = Pcloud::Client::ErrorResponse.new("Folder contents are too funny.")
+      allow(Pcloud::Folder)
+        .to receive(:find)
+        .with(1)
+        .and_raise(expected_error)
+      expect {
+        Pcloud::Folder.exists?(1)
+      }.to raise_error(expected_error)
+    end
+  end
+
+  describe ".find" do
     let(:find_response) do
       {
         "metadata" => {
@@ -510,7 +541,7 @@ RSpec.describe Pcloud::Folder do
     end
   end
 
-  describe "#find_by" do
+  describe ".find_by" do
     let(:find_by_response) do
       {
         "metadata" => {
@@ -571,6 +602,21 @@ RSpec.describe Pcloud::Folder do
       expect(contents.size).to eq(2)
       expect(contents.first).to be_a(Pcloud::File)
       expect(contents.last).to be_a(Pcloud::Folder)
+    end
+
+    it "raises MissingParameter with missing parameters" do
+      expect {
+        Pcloud::Folder.find_by(feeling: "happy")
+      }.to raise_error(Pcloud::Folder::MissingParameter, ":path or :id is required")
+    end
+
+    it "raises InvalidParameters with invalid parameters" do
+      expect {
+        Pcloud::Folder.find_by(path: "/jacks_folder", id: 9000)
+      }.to raise_error(
+        Pcloud::Folder::InvalidParameters,
+        ":id takes precedent over :path, please only use one or the other"
+      )
     end
   end
 end

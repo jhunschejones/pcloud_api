@@ -1,8 +1,8 @@
 module Pcloud
   class File
-    class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
     class InvalidParameter < StandardError; end
+    class InvalidParameters < StandardError; end
     class MissingParameter < StandardError; end
     class UploadFailed < StandardError; end
 
@@ -37,10 +37,10 @@ module Pcloud
 
     def update(params)
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
-        raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
+        raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
       if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
+        raise ManformedUpdateParams.new(":path param must start and end with `/`")
       end
       query = {
         fileid: id,
@@ -81,12 +81,27 @@ module Pcloud
     end
 
     class << self
+      def exists?(id)
+        find(id)
+        true
+      rescue Pcloud::Client::ErrorResponse => e
+        return false if e.message == "File not found."
+        raise e
+      end
+
       def find(id)
         parse_one(Client.execute("stat", query: { fileid: id }))
       end
 
-      def find_by(path:)
-        parse_one(Client.execute("stat", query: { path: path }))
+      def find_by(params)
+        raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
+        parse_one(
+          Client.execute(
+            "stat",
+            query: { path: params[:path], fileid: params[:id] }.compact
+          )
+        )
       end
 
       def upload(params)
@@ -107,7 +122,7 @@ module Pcloud
         raise InvalidParameter.new(":modified_at must be an instance of Ruby `Time`") if mtime && !mtime.is_a?(::Time)
         raise InvalidParameter.new(":created_at must be an instance of Ruby `Time`") if ctime && !ctime.is_a?(::Time)
         # Pcloud `ctime` param requires `mtime` to be present, but not the other way around
-        raise MissingParameter.new(":created_at parameter also requires :modified_at parameter to also be present") if ctime && !mtime
+        raise MissingParameter.new(":created_at requires :modified_at to also be present") if ctime && !mtime
 
         # === pCloud API behavior notes: ===
         # 1. If neither `path` nor `folder_id` is provided, the file will be

@@ -2,7 +2,8 @@ module Pcloud
   class Folder
     class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
-    class InvalidCreateParams < StandardError; end
+    class InvalidParameters < StandardError; end
+    class MissingParameter < StandardError; end
 
     include Parser
     include Pcloud::TimeHelper
@@ -34,7 +35,7 @@ module Pcloud
         raise UnsuportedUpdateParams.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
       if params[:path] && is_invalid_path_param?(params[:path])
-        raise ManformedUpdateParams.new("`path` param must start and end with `/`")
+        raise ManformedUpdateParams.new(":path param must start and end with `/`")
       end
       query = {
         folderid: id,
@@ -85,16 +86,31 @@ module Pcloud
         elsif params[:path]
           parse_one(Client.execute("createfolderifnotexists", query: { path: params[:path] }))
         else
-          raise InvalidCreateParams.new("first_or_create must be called with either `path` or both `parent_folder_id` and `name` params")
+          raise InvalidParameters.new("either :path or a combination of :parent_folder_id and :name params are required")
         end
+      end
+
+      def exists?(id)
+        find(id)
+        true
+      rescue Pcloud::Client::ErrorResponse => e
+        return false if e.message == "Directory does not exist."
+        raise e
       end
 
       def find(id)
         parse_one(Client.execute("listfolder", query: { folderid: id }))
       end
 
-      def find_by(path:)
-        parse_one(Client.execute("listfolder", query: { path: path }))
+      def find_by(params)
+        raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
+        parse_one(
+          Client.execute(
+            "listfolder",
+            query: { path: params[:path], folderid: params[:id] }.compact
+          )
+        )
       end
     end
   end

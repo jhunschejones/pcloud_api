@@ -165,11 +165,11 @@ RSpec.describe Pcloud::File do
     end
 
     context "with unsupported update params" do
-      it "raises UnsuportedUpdateParams and does not make a web request" do
+      it "raises InvalidParameters and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
           cat_photo.update(coolness_points: 1000000000)
-        }.to raise_error(Pcloud::File::UnsuportedUpdateParams, "Must be one of [:name, :parent_folder_id, :path]")
+        }.to raise_error(Pcloud::File::InvalidParameters, "Must be one of [:name, :parent_folder_id, :path]")
       end
     end
 
@@ -177,7 +177,7 @@ RSpec.describe Pcloud::File do
       it "raises ManformedUpdateParams and does not make a web request" do
         expect {
           cat_photo.update(path: "/images")
-        }.to raise_error(Pcloud::File::ManformedUpdateParams, "`path` param must start and end with `/`")
+        }.to raise_error(Pcloud::File::ManformedUpdateParams, ":path param must start and end with `/`")
       end
     end
   end
@@ -295,6 +295,37 @@ RSpec.describe Pcloud::File do
     end
   end
 
+  describe ".exists?" do
+    it "calls .find" do
+      expect(Pcloud::File).to receive(:find).with(1)
+      Pcloud::File.exists?(1)
+    end
+
+    it "returns false when no file is found" do
+      allow(Pcloud::File)
+        .to receive(:find)
+        .with(1)
+        .and_raise(Pcloud::Client::ErrorResponse.new("File not found."))
+      expect(Pcloud::File.exists?(1)).to eq(false)
+    end
+
+    it "returns true when a file is found" do
+      allow(Pcloud::File).to receive(:find).and_return(cat_photo)
+      expect(Pcloud::File.exists?(1)).to eq(true)
+    end
+
+    it "re-raises unexpected errors" do
+      expected_error = Pcloud::Client::ErrorResponse.new("File is too funny.")
+      allow(Pcloud::File)
+        .to receive(:find)
+        .with(1)
+        .and_raise(expected_error)
+      expect {
+        Pcloud::File.exists?(1)
+      }.to raise_error(expected_error)
+    end
+  end
+
   describe ".find" do
     let(:stat_response) do
       {
@@ -370,6 +401,21 @@ RSpec.describe Pcloud::File do
       expect(response).to be_a(Pcloud::File)
       expect(response.id).to eq(cat_photo.id)
       expect(response.name).to eq(cat_photo.name)
+    end
+
+    it "raises MissingParameter with missing parameters" do
+      expect {
+        Pcloud::File.find_by(feeling: "happy")
+      }.to raise_error(Pcloud::File::MissingParameter, ":path or :id is required")
+    end
+
+    it "raises InvalidParameters with invalid parameters" do
+      expect {
+        Pcloud::File.find_by(path: "/cats.jpg", id: 100100)
+      }.to raise_error(
+        Pcloud::File::InvalidParameters,
+        ":id takes precedent over :path, please only use one or the other"
+      )
     end
   end
 
@@ -486,7 +532,7 @@ RSpec.describe Pcloud::File do
             )
           }.to raise_error(
             Pcloud::File::MissingParameter,
-            ":created_at parameter also requires :modified_at parameter to also be present"
+            ":created_at requires :modified_at to also be present"
           )
         end
 
