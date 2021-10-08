@@ -402,6 +402,12 @@ RSpec.describe Pcloud::File do
       expect(response.id).to eq(cat_photo.id)
       expect(response.name).to eq(cat_photo.name)
     end
+
+    it "raises MissingParameter with invalid parameters" do
+      expect {
+        Pcloud::File.find_by(feeling: "happy")
+      }.to raise_error(Pcloud::File::MissingParameter, ":path or :id is required")
+    end
   end
 
   describe ".upload" do
@@ -517,7 +523,7 @@ RSpec.describe Pcloud::File do
             )
           }.to raise_error(
             Pcloud::File::MissingParameter,
-            ":created_at parameter also requires :modified_at parameter to also be present"
+            ":created_at requires :modified_at to also be present"
           )
         end
 

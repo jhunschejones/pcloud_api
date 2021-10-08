@@ -3,6 +3,7 @@ module Pcloud
     class UnsuportedUpdateParams < StandardError; end
     class ManformedUpdateParams < StandardError; end
     class InvalidCreateParams < StandardError; end
+    class MissingParameter < StandardError; end
 
     include Parser
     include Pcloud::TimeHelper
@@ -98,11 +99,17 @@ module Pcloud
       end
 
       def find(id)
-        parse_one(Client.execute("listfolder", query: { folderid: id }))
+        find_by(id: id)
       end
 
-      def find_by(path:)
-        parse_one(Client.execute("listfolder", query: { path: path }))
+      def find_by(params)
+        raise MissingParameter.new(":path or :id is required") unless params[:path] || params[:id]
+        parse_one(
+          Client.execute(
+            "listfolder",
+            query: { path: params[:path], folderid: params[:id] }.compact
+          )
+        )
       end
     end
   end

@@ -603,5 +603,11 @@ RSpec.describe Pcloud::Folder do
       expect(contents.first).to be_a(Pcloud::File)
       expect(contents.last).to be_a(Pcloud::Folder)
     end
+
+    it "raises MissingParameter with invalid parameters" do
+      expect {
+        Pcloud::Folder.find_by(feeling: "happy")
+      }.to raise_error(Pcloud::Folder::MissingParameter, ":path or :id is required")
+    end
   end
 end
