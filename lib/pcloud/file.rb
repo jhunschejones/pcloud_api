@@ -81,6 +81,14 @@ module Pcloud
     end
 
     class << self
+      def exists?(id)
+        find(id)
+        true
+      rescue Pcloud::Client::ErrorResponse => e
+        return false if e.message == "File not found."
+        raise e
+      end
+
       def find(id)
         parse_one(Client.execute("stat", query: { fileid: id }))
       end

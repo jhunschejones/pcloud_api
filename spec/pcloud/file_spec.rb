@@ -295,6 +295,37 @@ RSpec.describe Pcloud::File do
     end
   end
 
+  describe ".exists?" do
+    it "calls .find" do
+      expect(Pcloud::File).to receive(:find).with(1)
+      Pcloud::File.exists?(1)
+    end
+
+    it "returns false when no file is found" do
+      allow(Pcloud::File)
+        .to receive(:find)
+        .with(1)
+        .and_raise(Pcloud::Client::ErrorResponse.new("File not found."))
+      expect(Pcloud::File.exists?(1)).to eq(false)
+    end
+
+    it "returns true when a file is found" do
+      allow(Pcloud::File).to receive(:find).and_return(cat_photo)
+      expect(Pcloud::File.exists?(1)).to eq(true)
+    end
+
+    it "re-raises unexpected errors" do
+      expected_error = Pcloud::Client::ErrorResponse.new("File is too funny.")
+      allow(Pcloud::File)
+        .to receive(:find)
+        .with(1)
+        .and_raise(expected_error)
+      expect {
+        Pcloud::File.exists?(1)
+      }.to raise_error(expected_error)
+    end
+  end
+
   describe ".find" do
     let(:stat_response) do
       {

@@ -89,6 +89,14 @@ module Pcloud
         end
       end
 
+      def exists?(id)
+        find(id)
+        true
+      rescue Pcloud::Client::ErrorResponse => e
+        return false if e.message == "Directory does not exist."
+        raise e
+      end
+
       def find(id)
         parse_one(Client.execute("listfolder", query: { folderid: id }))
       end

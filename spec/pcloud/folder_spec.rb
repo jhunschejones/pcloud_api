@@ -446,7 +446,38 @@ RSpec.describe Pcloud::Folder do
     end
   end
 
-  describe "#find" do
+  describe ".exists?" do
+    it "calls .find" do
+      expect(Pcloud::Folder).to receive(:find).with(1)
+      Pcloud::Folder.exists?(1)
+    end
+
+    it "returns false when no folder is found" do
+      allow(Pcloud::Folder)
+        .to receive(:find)
+        .with(1)
+        .and_raise(Pcloud::Client::ErrorResponse.new("Directory does not exist."))
+      expect(Pcloud::Folder.exists?(1)).to eq(false)
+    end
+
+    it "returns true when a folder is found" do
+      allow(Pcloud::Folder).to receive(:find).and_return(jacks_folder)
+      expect(Pcloud::Folder.exists?(1)).to eq(true)
+    end
+
+    it "re-raises unexpected errors" do
+      expected_error = Pcloud::Client::ErrorResponse.new("Folder contents are too funny.")
+      allow(Pcloud::Folder)
+        .to receive(:find)
+        .with(1)
+        .and_raise(expected_error)
+      expect {
+        Pcloud::Folder.exists?(1)
+      }.to raise_error(expected_error)
+    end
+  end
+
+  describe ".find" do
     let(:find_response) do
       {
         "metadata" => {
@@ -510,7 +541,7 @@ RSpec.describe Pcloud::Folder do
     end
   end
 
-  describe "#find_by" do
+  describe ".find_by" do
     let(:find_by_response) do
       {
         "metadata" => {
