@@ -41,16 +41,21 @@ The `Pcloud::File` API includes:
 # Find files by file id or path:
 Pcloud::File.find(1)
 Pcloud::File.find_by(path: "/images/jack_the_cat.jpg")
+# NOTE: find_by can also be used with :id, though this will take precedence
+# over :path so just pick one or the other
 
-# Upload a new file, rename if already existing:
+# Check if a file exists by id
+Pcloud::File.exists?(1)
+
+# Upload a new file, rename if one already exists with this name:
 Pcloud::File.upload(
   folder_id: 1,
   filename: "jack_goes_swimming.mp4",
   file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
 )
-# NOTE: the upload method will allow you to specify either the `path` or the
-# `folder_id`, or you can choose to pass neither paramenter and your files will
-# be placed in your root pCloud directory.
+# NOTE: the upload method will allow you to specify the :path or the :folder_id
+# or you can choose to pass neither paramenter and your files will be placed
+# in your root pCloud directory.
 
 # Upload a file, force overwrite of existing file:
 Pcloud::File.upload!(
@@ -80,6 +85,11 @@ The `Pcloud::Folder` API is very similar:
 # Find folders by folder id or path:
 Pcloud::Folder.find(1)
 Pcloud::Folder.find_by(path: "/images")
+# NOTE: find_by can also be used with :id, though this will take precedence
+# over :path so just pick one or the other
+
+# Check if a folder exists by id
+Pcloud::Folder.exists?(1)
 
 # Create a new folder by parent_folder_id and name:
 Pcloud::Folder.first_or_create(parent_folder_id: 9000, name: "jack")
