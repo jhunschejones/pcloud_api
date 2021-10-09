@@ -1,7 +1,12 @@
+## 0.2.2 2021-10-09
+
+**Changes**
+  1. After adding GitHub actions, I discovered that the gem did not in fact work on all the versions of Ruby that I had thought it supported. This update makes some small tweaks to bring support to Ruby 2.4 then updates the `.gemspec` to clarify that 2.3 is not in fact supported. All current users of the gem should see no behavior changes as a result of this update 👍🏻
+
 ## 0.2.1 2021-10-07
 
 **Changes**
-  1. Simplifying the errors returned from `Pcloud::Folder` and `Pcloud::File`. This is purely a cleanup release, unless your client is explicitly checking error strings there should be no noticeable behavior change 👍🏻 
+  1. Simplifying the errors returned from `Pcloud::Folder` and `Pcloud::File`. This is purely a cleanup release, unless your client is explicitly checking error strings there should be no noticeable behavior change 👍🏻
 
 ## 0.2.0 2021-10-07
 
