@@ -12,7 +12,7 @@ RSpec.describe Pcloud::TimeHelper do
     end
 
     it "parses a time object" do
-      expect(subject.send(:time_from, time)).to eq(time.utc.floor(6))
+      expect(subject.send(:time_from, time)).to eq(time.utc)
     end
 
     it "parses a string timestamp" do
@@ -34,7 +34,6 @@ RSpec.describe Pcloud::TimeHelper do
       expected_local_timezone_time = TZInfo::Timezone
         .get("America/Los_Angeles")
         .to_local(time)
-        .floor(6) # includes milliseconds
       expect(subject.send(:time_from, time)).to eq(expected_local_timezone_time)
     end
 
