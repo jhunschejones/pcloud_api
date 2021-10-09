@@ -3,6 +3,17 @@ RSpec.describe Pcloud::TimeHelper do
     include Pcloud::TimeHelper
   end
 
+  # This method does not exist before Ruby 2.7. I'm adding it here so that the
+  # test suite will work on older Ruby's. (The gem's code itself does not
+  # depend on this method existing.)
+  unless Time.method_defined? :floor
+    class Time
+      def floor(floor=0)
+        Time.at(self.to_r.floor(floor))
+      end
+    end
+  end
+
   let(:subject) { TestClass.new }
   let(:time) { Time.now }
 
