@@ -20,6 +20,12 @@ Or install it yourself as:
 
     $ gem install pcloud_api
 
+## Requirements
+
+* Ruby 2.4.0 or higher
+* `httparty`
+* `tzinfo`
+
 ## Usage
 
 ### Configuration
