@@ -24,8 +24,8 @@ module Pcloud
           headers: { "Authorization" => "Bearer #{access_token}" },
           timeout: TIMEOUT_SECONDS # this sets both the open and read timeouts to the same value
         }
-        options.merge!({ query: query }) unless query.empty?
-        options.merge!({ body: body }) unless body.empty?
+        options[:query] = query unless query.empty?
+        options[:body] = body unless body.empty?
         response = HTTParty.public_send(verb, "https://#{closest_server}/#{method}", options)
         json_response = JSON.parse(response.body)
         raise ErrorResponse.new(json_response["error"]) if json_response["error"]
