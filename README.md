@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/jhunschejones/pcloud_api/actions/workflows/ci.yml/badge.svg)](https://github.com/jhunschejones/pcloud_api/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/pcloud_api.svg)](https://badge.fury.io/rb/pcloud_api)
+[![Gem Downloads](https://badgen.net/rubygems/dt/pcloud_api)](https://rubygems.org/gems/pcloud_api) 
 
 The `pcloud_api` gem provides an intuitive Ruby interface for interacting with the [pCloud API](https://docs.pcloud.com/) using OAuth2. This gem does not attempt to replicate the entire functionality of the pCloud API but rather to provide quick and easy access for its most basic and common functionality. If you are looking for a lower-level pCloud API wrapper, [`pcloud`](https://github.com/7urkm3n/pcloud) might be a better fit for you.
 
