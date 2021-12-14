@@ -111,7 +111,7 @@ RSpec.describe Pcloud::Client do
     it "raises ConfigurationError when not configured" do
       expect {
         Pcloud::Client.send(:access_token)
-      }.to raise_error(Pcloud::Client::ConfigurationError, "Missing bearer token")
+      }.to raise_error(Pcloud::Client::ConfigurationError, "Missing pCloud API access token")
     end
   end
 
