@@ -34,8 +34,8 @@ module Pcloud
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
         raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
-      if params[:path] && is_invalid_path_param?(params[:path])
-        raise InvalidParameter.new(":path parameter must start and end with `/`")
+      if params[:path] && params[:path][0] != "/"
+        raise InvalidParameter.new(":path parameter must start with `/`")
       end
       query = {
         folderid: id,
@@ -70,13 +70,6 @@ module Pcloud
       @contents = Folder.find(id).contents
       @contents_are_confirmed = true
       @contents
-    end
-
-    private
-
-    def is_invalid_path_param?(path_param)
-      # Path params have to start and end with `/`
-      [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
     class << self
