@@ -136,7 +136,7 @@ module Pcloud
         # so we return just one file out of this method.
         uploaded_file = parse_many(response).first
         raise UploadFailed if uploaded_file.nil?
-        return uploaded_file
+        uploaded_file
       rescue KeyError => e
         missing_param = e.message.gsub("key not found: ", "")
         raise MissingParameter.new("#{missing_param} is required")
