@@ -229,8 +229,8 @@ RSpec.describe Pcloud::Folder do
       it "raises InvalidParameter and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
-          jacks_folder.update(path: "/jack_images")
-        }.to raise_error(Pcloud::Folder::InvalidParameter, ":path parameter must start and end with `/`")
+          jacks_folder.update(path: "jack_images")
+        }.to raise_error(Pcloud::Folder::InvalidParameter, ":path parameter must start with `/`")
       end
     end
   end

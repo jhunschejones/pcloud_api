@@ -1,3 +1,9 @@
+## 0.2.3 2021-12-14
+
+**Changes**
+  1. `Pcloud::File`'s `upload` method no longer requires a `:filename` param, since pCloud just reads it off of the file object and ignores the param anyway
+  2. Both `Pcloud::File` and `Pcloud::Folder`'s `update` and `update!` methods now allow either partial paths _(starting and ending with slashes)_ or full paths. This is a little more dangerous if you specify a full path and you meant partial, but it's a reasonable use case to support.
+
 ## 0.2.2 2021-10-09
 
 **Changes**

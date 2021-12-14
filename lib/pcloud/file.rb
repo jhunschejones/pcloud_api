@@ -39,8 +39,8 @@ module Pcloud
       unless (params.keys - SUPPORTED_UPDATE_PARAMS).empty?
         raise InvalidParameters.new("Must be one of #{SUPPORTED_UPDATE_PARAMS}")
       end
-      if params[:path] && is_invalid_path_update_param?(params[:path])
-        raise InvalidParameter.new(":path param must start and end with `/`")
+      if params[:path] && params[:path][0] != "/"
+        raise InvalidParameter.new(":path param must start with `/`")
       end
       query = {
         fileid: id,
@@ -71,13 +71,6 @@ module Pcloud
       # a download URL from pcloud, while maintaining consistency if the file
       # name changes later.
       "#{@download_url}/#{URI.encode_www_form_component(name)}"
-    end
-
-    private
-
-    def is_invalid_path_update_param?(path_param)
-      # Path params have to start and end with `/` when used with .update
-      [path_param[0], path_param[-1]] != ["/", "/"]
     end
 
     class << self
@@ -127,7 +120,7 @@ module Pcloud
             renameifexists: params[:overwrite] ? 0 : 1,
             path: params[:path],
             folderid: params[:folder_id],
-            filename: params.fetch(:filename),
+            filename: params[:filename],
             file: file,
           }.compact,
         )

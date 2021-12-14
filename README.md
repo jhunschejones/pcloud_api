@@ -52,37 +52,44 @@ There are two main objects represented in the library, `Pcloud::File` and `Pclou
 
 The `Pcloud::File` API includes:
 ```ruby
-# Find files by file id or path:
+# Find files by file :id or :path:
 Pcloud::File.find(1)
 Pcloud::File.find_by(path: "/images/jack_the_cat.jpg")
-# NOTE: find_by can also be used with :id, though this will take precedence
+# NOTE: `find_by` can also be used with :id, though this will take precedence
 # over :path so just pick one or the other
 
-# Check if a file exists by id
+# Check if a file exists by :id
 Pcloud::File.exists?(1)
 
 # Upload a new file, rename if one already exists with this name:
 Pcloud::File.upload(
-  folder_id: 1,
-  filename: "jack_goes_swimming.mp4",
+  path: "/Jack",
   file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
 )
-# NOTE: the upload method will allow you to specify the :path or the :folder_id
-# or you can choose to pass neither paramenter and your files will be placed
-# in your root pCloud directory.
 
-# Upload a file, force overwrite of existing file:
+# Upload a file, force overwrite if a file already exists with this name:
 Pcloud::File.upload!(
-  folder_id: 1,
-  filename: "jack_goes_swimming.mp4",
+  path: "/Jack",
   file: File.open("/Users/joshua/Downloads/jack_goes_swimming.mp4")
 )
+
+# NOTE:
+# The `upload` and `upload!` methods will allow you to specify either the :path
+# or the :folder_id of the target parent directory, or you can choose to pass
+# neither paramenter and your files will be placed in your root pCloud
+# directory by default.
 
 # Rename a file:
 jack_goes_swimming.update(name: "That's one wet cat.mp4")
 
-# Move a file by updating the parent_folder_id or path:
+# Move a file by updating the :parent_folder_id:
 jack_goes_swimming.update(parent_folder_id: 9000)
+
+# Move a file by specifying the parent folder part of the path:
+jack_goes_swimming.update(path: "/photos/") # NOTE: needs to start and end with slashes
+
+# Move a file by specifying the entire new file path:
+jack_goes_swimming.update(path: "/photos/jack_goes_swimming.mp4")
 
 # Delete a file:
 jack_goes_swimming.delete
@@ -96,26 +103,36 @@ jack_goes_swimming.parent_folder
 
 The `Pcloud::Folder` API is very similar:
 ```ruby
-# Find folders by folder id or path:
+# Find folders by folder :id or :path:
 Pcloud::Folder.find(1)
 Pcloud::Folder.find_by(path: "/images")
-# NOTE: find_by can also be used with :id, though this will take precedence
+# NOTE: `find_by` can also be used with :id, though this will take precedence
 # over :path so just pick one or the other
 
 # Check if a folder exists by id
 Pcloud::Folder.exists?(1)
 
-# Create a new folder by parent_folder_id and name:
+# Create a new folder by :parent_folder_id and :name:
 Pcloud::Folder.first_or_create(parent_folder_id: 9000, name: "jack")
 
-# Create a new folder by path:
+# Create a new folder by :path (parent directory must already exist):
 Pcloud::Folder.first_or_create(path: "/images/jack")
 
 # Rename a folder:
 jack_images.update(name: "Jack's Photo Library")
 
-# Move a folder by updating the parent_folder_id or path:
+# Move a folder by updating the :parent_folder_id:
 jack_images.update(parent_folder_id: 9000)
+
+# Move a folder by specifying the parent folder part of the path:
+jack_images.update(path: "/photos/")
+# NOTES:
+# - Partial paths must start and end with slashes
+# - All refrenced parent directories in the path must already exist
+
+# Move a folder by specifying the entire new file path:
+jack_images.update(path: "/photos/images/jack")
+# NOTE: All refrenced parent directories in the path must already exist
 
 # Delete an empty folder:
 jack_images.delete
