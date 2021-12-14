@@ -44,7 +44,7 @@ module Pcloud
       def access_token
         @@access_token ||= ENV["PCLOUD_API_ACCESS_TOKEN"]
         return @@access_token unless @@access_token.nil?
-        raise ConfigurationError.new("Missing bearer token")
+        raise ConfigurationError.new("Missing pCloud API access token")
       end
 
       # You can manually hit "https://<default_server_for_your_region>/getapiserver"

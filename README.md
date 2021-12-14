@@ -11,7 +11,7 @@ The `pcloud_api` gem provides an intuitive Ruby interface for interacting with t
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'pcloud_api'
+gem "pcloud_api"
 ```
 
 And then execute:
@@ -29,6 +29,10 @@ Or install it yourself as:
 * `tzinfo`
 
 ## Usage
+
+### Generating an access token
+
+To use the `pcloud_api` client, you will need to first generate an access token. You may do this by cloning and running the script in [`./bin/generate_access_token`](https://github.com/jhunschejones/pcloud_api/blob/master/bin/generate_access_token). It will take you through the process of setting up a pCloud app and completing the OAuth2 flow in the browser.
 
 ### Configuration
 
@@ -138,10 +142,6 @@ The `Pcloud::File` and `Pcloud::Folder` APIs cover the most important, common fu
 Pcloud::Client.execute("listrevisions", query: { fileid: 90000 })
 ```
 _(There are a few methods on the raw pCloud API that require manual login, which this gem does not yet support. If you find that you need access to these methods you may wish to look at using the [`pcloud`](https://github.com/7urkm3n/pcloud) gem instead.)_
-
-### Generating an access token
-
-To use the `pcloud_api` client, you will need to first generate an access token. You may do this by cloning and running the script in `./bin/generate_access_token`. It will take you through the process of setting up a pCloud app and completing the OAuth2 flow in the browser.
 
 ## Development
 
