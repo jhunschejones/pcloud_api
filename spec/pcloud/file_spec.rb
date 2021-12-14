@@ -177,8 +177,8 @@ RSpec.describe Pcloud::File do
       it "raises InvalidParameter and does not make a web request" do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
-          cat_photo.update(path: "/images")
-        }.to raise_error(Pcloud::File::InvalidParameter, ":path param must start and end with `/`")
+          cat_photo.update(path: "images")
+        }.to raise_error(Pcloud::File::InvalidParameter, ":path param must start with `/`")
       end
     end
   end
@@ -457,12 +457,6 @@ RSpec.describe Pcloud::File do
 
     context "with a valid file object" do
       let(:sleepy_cat_image_file) { File.open("spec/fixtures/sleepy_cat.jpg") }
-
-      it "requires a filename param" do
-        expect {
-          Pcloud::File.upload(file: sleepy_cat_image_file)
-        }.to raise_error(Pcloud::File::MissingParameter, ":filename is required")
-      end
 
       it "makes an uploadfile request" do
         expect(Pcloud::Client)
