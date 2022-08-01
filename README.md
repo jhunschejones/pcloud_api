@@ -147,18 +147,28 @@ jack_images.parent_folder
 jack_images.contents
 ```
 
-**Aside: path vs id**
+**Params: path vs id**
 
 pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
 
 
-**Aside: off-label client use**
+**Off-label client use**
 
 The `Pcloud::File` and `Pcloud::Folder` APIs cover the most important, common functionality developers will want to access in a way that is easy to use without much onboarding. If you find that you still need to access other parts of the pCloud API that are not included in this gem yet, you can try calling other methods specified in [the pCloud API docs](https://docs.pcloud.com/) by interacting directly with the `Pcloud::Client`:
 ```ruby
 Pcloud::Client.execute("listrevisions", query: { fileid: 90000 })
 ```
 _(There are a few methods on the raw pCloud API that require manual login, which this gem does not yet support. If you find that you need access to these methods you may wish to look at using the [`pcloud`](https://github.com/7urkm3n/pcloud) gem instead.)_
+
+### Example uses
+
+Upload a file from form params in Rails:
+```ruby
+Pcloud::File.upload(
+  path: "/Jack",
+  file: File.open(params[:file].path)
+)
+```
 
 ## Development
 
