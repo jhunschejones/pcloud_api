@@ -170,6 +170,66 @@ Pcloud::File.upload(
 )
 ```
 
+Backup a database for a local script:
+```ruby
+Pcloud::File.upload(
+  folder_id: PCLOUD_FOLDER_ID,
+  filename: LOCAL_DB_FILENAME,
+  file: File.open("./#{LOCAL_DB_FILENAME}")
+)
+```
+
+Archive old state files and upload a new file for today:
+```ruby
+# NOTE: This will overwrite existing archive files for each day such that
+#       there is only ever one database file stored per day.
+Pcloud::Folder.find(PCLOUD_FOLDER_ID)
+  .contents
+  .filter { |item| item.is_a?(Pcloud::File) }
+  .filter { |file| file.name.match?(PCLOUD_STATE_FILE_REGEX) }
+  .each do |file|
+    file.update(
+      name: "#{file.created_at.strftime("%Y_%m_%d")}_#{file.name}",
+      parent_folder_id: PCLOUD_ARCHIVE_FOLDER_ID
+    )
+  end
+
+Pcloud::File.upload(
+  folder_id: PCLOUD_FOLDER_ID,
+  filename: LOCAL_DB_FILENAME,
+  file: File.open("./#{LOCAL_DB_FILENAME}")
+)
+```
+
+Safely download previous state files for a local script:
+```ruby
+Pcloud::Folder.find(PCLOUD_FOLDER_ID)
+  .contents
+  .filter { |item| item.is_a?(Pcloud::File) }
+  .filter { |file| file.name.match?(PCLOUD_STATE_FILE_REGEX) }
+  .each do |state_file|
+    filename = "./db/#{state_file.name}"
+    # prompt if local file is newer than cloud state file
+    if ::File.exist?(filename) && ::File.ctime(filename) > state_file.created_at
+      puts "Local #{filename} is newer than the version in pCloud. Are you sure you want to overwrite the local file with an older copy? [Y/N]".red
+      print "> ".red
+      unless ["yes", "y"].include?($stdin.gets.chomp.downcase)
+        puts "Skipping download of #{filename}...".yellow
+        next
+      end
+    end
+    # Only proceed with file download after confirmation or if cloud file is
+    # not older than local file.
+    ::File.open(filename, "w") do |file|
+      file.binmode
+      puts "Downloading #{filename} from pCloud...".yellow
+      HTTParty.get(state_file.download_url, stream_body: true) do |fragment|
+        file.write(fragment)
+      end
+    end
+  end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
