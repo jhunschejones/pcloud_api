@@ -162,6 +162,8 @@ _(There are a few methods on the raw pCloud API that require manual login, which
 
 ### Example uses
 
+In addition to the API docs above, here are some real-world ideas of how you might use the `pcloud_api` gem in a project. Feel free to submit a PR if you have an example that you think others would benefit from as well!
+
 Upload a file from form params in Rails:
 ```ruby
 Pcloud::File.upload(
