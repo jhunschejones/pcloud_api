@@ -147,18 +147,90 @@ jack_images.parent_folder
 jack_images.contents
 ```
 
-**Aside: path vs id**
+**Params: path vs id**
 
 pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
 
 
-**Aside: off-label client use**
+**Off-label client use**
 
 The `Pcloud::File` and `Pcloud::Folder` APIs cover the most important, common functionality developers will want to access in a way that is easy to use without much onboarding. If you find that you still need to access other parts of the pCloud API that are not included in this gem yet, you can try calling other methods specified in [the pCloud API docs](https://docs.pcloud.com/) by interacting directly with the `Pcloud::Client`:
 ```ruby
 Pcloud::Client.execute("listrevisions", query: { fileid: 90000 })
 ```
 _(There are a few methods on the raw pCloud API that require manual login, which this gem does not yet support. If you find that you need access to these methods you may wish to look at using the [`pcloud`](https://github.com/7urkm3n/pcloud) gem instead.)_
+
+### Example uses
+
+In addition to the API docs above, here are some real-world ideas of how you might use the `pcloud_api` gem in a project. Feel free to submit a PR if you have an example that you think others would benefit from as well!
+
+Upload a file from form params in Rails:
+```ruby
+Pcloud::File.upload(
+  path: "/Jack",
+  file: File.open(params[:file].path)
+)
+```
+
+Backup a database for a local script:
+```ruby
+Pcloud::File.upload(
+  folder_id: PCLOUD_FOLDER_ID,
+  filename: LOCAL_DB_FILENAME,
+  file: File.open("./#{LOCAL_DB_FILENAME}")
+)
+```
+
+Archive old state files and upload a new file for today:
+```ruby
+# NOTE: This will overwrite existing archive files for each day such that
+#       there is only ever one database file stored per day.
+Pcloud::Folder.find(PCLOUD_FOLDER_ID)
+  .contents
+  .filter { |item| item.is_a?(Pcloud::File) }
+  .filter { |file| file.name.match?(PCLOUD_STATE_FILE_REGEX) }
+  .each do |file|
+    file.update(
+      name: "#{file.created_at.strftime("%Y_%m_%d")}_#{file.name}",
+      parent_folder_id: PCLOUD_ARCHIVE_FOLDER_ID
+    )
+  end
+
+Pcloud::File.upload(
+  folder_id: PCLOUD_FOLDER_ID,
+  filename: LOCAL_DB_FILENAME,
+  file: File.open("./#{LOCAL_DB_FILENAME}")
+)
+```
+
+Safely download previous state files for a local script:
+```ruby
+Pcloud::Folder.find(PCLOUD_FOLDER_ID)
+  .contents
+  .filter { |item| item.is_a?(Pcloud::File) }
+  .filter { |file| file.name.match?(PCLOUD_STATE_FILE_REGEX) }
+  .each do |state_file|
+    filename = "./db/#{state_file.name}"
+    # prompt if local file is newer than cloud state file
+    if ::File.exist?(filename) && ::File.ctime(filename) > state_file.created_at
+      puts "Local #{filename} is newer than the version in pCloud. Are you sure you want to overwrite the local file with an older copy? [Y/N]".red
+      print "> ".red
+      unless ["yes", "y"].include?($stdin.gets.chomp.downcase)
+        puts "Skipping download of #{filename}...".yellow
+        next
+      end
+    end
+    # Only proceed with file download after confirmation or if cloud file is
+    # not older than local file.
+    ::File.open(filename, "w") do |file|
+      file.binmode
+      puts "Downloading #{filename} from pCloud...".yellow
+      HTTParty.get(state_file.download_url, stream_body: true) do |fragment|
+        file.write(fragment)
+      end
+    end
+  end
+```
 
 ## Development
 
