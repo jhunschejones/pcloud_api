@@ -149,7 +149,7 @@ jack_images.contents
 
 **Params: path vs id**
 
-pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
+pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather than using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
 
 
 **Off-label client use**
