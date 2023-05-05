@@ -523,9 +523,19 @@ RSpec.describe Pcloud::Folder do
         .to receive(:execute)
         .with(
           "listfolder",
-          query: { folderid: 9000 }
+          query: { folderid: 9000, recursive: false }
         )
       Pcloud::Folder.find(9000)
+    end
+
+    it "makes a recursive listfolder request when option is passed" do
+      expect(Pcloud::Client)
+        .to receive(:execute)
+        .with(
+          "listfolder",
+          query: { folderid: 9000, recursive: true }
+        )
+      Pcloud::Folder.find(9000, recursive: true)
     end
 
     it "returns a Pcloud::Folder" do
@@ -582,14 +592,34 @@ RSpec.describe Pcloud::Folder do
       allow(Pcloud::Client).to receive(:execute).and_return(find_by_response)
     end
 
-    it "makes a listfolder request" do
+    it "makes a listfolder request by path" do
       expect(Pcloud::Client)
         .to receive(:execute)
         .with(
           "listfolder",
-          query: { path: "/jacks_folder" }
+          query: { path: "/jacks_folder", recursive: false }
         )
       Pcloud::Folder.find_by(path: "/jacks_folder")
+    end
+
+    it "makes a listfolder request by id" do
+      expect(Pcloud::Client)
+        .to receive(:execute)
+        .with(
+          "listfolder",
+          query: { folderid: 9000, recursive: false }
+        )
+      Pcloud::Folder.find_by(id: 9000)
+    end
+
+    it "makes a recursive listfolder request when option is passed" do
+      expect(Pcloud::Client)
+        .to receive(:execute)
+        .with(
+          "listfolder",
+          query: { path: "/jacks_folder", recursive: true }
+        )
+      Pcloud::Folder.find_by(path: "/jacks_folder", recursive: true)
     end
 
     it "returns a Pcloud::Folder" do
@@ -610,7 +640,7 @@ RSpec.describe Pcloud::Folder do
         expect(Pcloud::Client).to receive(:execute).never
         expect {
           Pcloud::Folder.find_by(feeling: "happy")
-        }.to raise_error(Pcloud::Folder::InvalidParameters, "Must be one of [:id, :path]")
+        }.to raise_error(Pcloud::Folder::InvalidParameters, "Must be one of [:id, :path, :recursive]")
       end
     end
 

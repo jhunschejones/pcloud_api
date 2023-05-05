@@ -8,7 +8,7 @@ module Pcloud
     include Pcloud::TimeHelper
 
     SUPPORTED_UPDATE_PARAMS = [:name, :parent_folder_id, :path].freeze
-    SUPPORTED_FIND_BY_PARAMS = [:id, :path].freeze
+    SUPPORTED_FIND_BY_PARAMS = [:id, :path, :recursive].freeze
 
     attr_reader :id, :path, :name, :parent_folder_id, :is_deleted, :created_at,
                 :modified_at
@@ -91,8 +91,8 @@ module Pcloud
         raise e
       end
 
-      def find(id)
-        parse_one(Client.execute("listfolder", query: { folderid: id }))
+      def find(id, opts={})
+        parse_one(Client.execute("listfolder", query: { folderid: id, recursive: opts[:recursive] == true }))
       end
 
       def find_by(params)
@@ -100,7 +100,7 @@ module Pcloud
           raise InvalidParameters.new("Must be one of #{SUPPORTED_FIND_BY_PARAMS}")
         end
         raise InvalidParameters.new(":id takes precedent over :path, please only use one or the other") if params[:path] && params[:id]
-        query = { path: params[:path], folderid: params[:id] }.compact
+        query = { path: params[:path], folderid: params[:id], recursive: params[:recursive] == true }.compact
         parse_one(Client.execute("listfolder", query: query))
       end
     end
