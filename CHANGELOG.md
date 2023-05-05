@@ -1,6 +1,12 @@
 ## 0.2.3 2021-12-14
 
 **Changes**
+  1. You can now specify `recursive: true` on `Pcloud::Folder#find` and `Pcloud::Folder#find_by` methods to load all the folders contents recursively. Note that this may result in long request times for folders with many items in them.
+  2. You can now configure the pCloud API read and connect timeouts via a new `timeout_seconds` argument to `Pcloud::Client.configure()`. The previous way to set this value via a `PCLOUD_API_TIMEOUT_SECONDS` environment variable continues to work as before.
+
+## 0.2.3 2021-12-14
+
+**Changes**
   1. `Pcloud::File`'s `upload` method no longer requires a `:filename` param, since pCloud just reads it off of the file object and ignores the param anyway
   2. Both `Pcloud::File` and `Pcloud::Folder`'s `update` and `update!` methods now allow either partial paths _(starting and ending with slashes)_ or full paths. This is a little more dangerous if you specify a full path and you meant partial, but it's a reasonable use case to support.
 

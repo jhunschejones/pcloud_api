@@ -56,8 +56,12 @@ The `Pcloud::File` API includes:
 # Find files by file :id or :path:
 Pcloud::File.find(1)
 Pcloud::File.find_by(path: "/images/jack_the_cat.jpg")
-# NOTE: `find_by` can also be used with :id, though this will take precedence
-# over :path so pick only one or the other
+# NOTES:
+# - `find_by` can also be used with :id, though this will take precedence over
+#   :path so pick only one or the other
+# - Both `find` and `find_by` take an optional `recursive: true` argument which
+#   will recursively load all the folders contents. NOTE: this may result in
+#   long request times for folders with many items in them.
 
 # Check if a file exists by :id
 Pcloud::File.exists?(1)
