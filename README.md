@@ -40,7 +40,7 @@ The `Pcloud::Client` can be configured by directly calling the `Pcloud::Client.c
 ```ruby
 Pcloud::Client.configure(
   access_token: "your-pcloud-app-access-token",
-  data_region: "EU"
+  data_region: "EU",
   timeout_seconds: 8 # optional integer, defaults to 8 seconds if not specified
 )
 ```
