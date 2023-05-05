@@ -4,7 +4,7 @@
 [![Gem Version](https://badge.fury.io/rb/pcloud_api.svg)](https://badge.fury.io/rb/pcloud_api)
 [![Gem Downloads](https://badgen.net/rubygems/dt/pcloud_api)](https://rubygems.org/gems/pcloud_api)
 
-The `pcloud_api` gem provides an intuitive Ruby interface for interacting with the [pCloud API](https://docs.pcloud.com/) using OAuth2. This gem does not attempt to replicate the entire functionality of the pCloud API but rather to provide quick and easy access for its most basic and common functionality. If you are looking for a lower-level pCloud API wrapper, [`pcloud`](https://github.com/7urkm3n/pcloud) might be a better fit for you.
+The `pcloud_api` gem provides an intuitive Ruby interface for interacting with the [pCloud API](https://docs.pcloud.com/) using OAuth2. This gem does not attempt to replicate the entire functionality of the pCloud API but rather to provide quick and easy access for its most important functionality. If you are looking for a lower-level pCloud API wrapper, [`pcloud`](https://github.com/7urkm3n/pcloud) might be a better fit for you.
 
 ## Installation
 
@@ -41,6 +41,7 @@ The `Pcloud::Client` can be configured by directly calling the `Pcloud::Client.c
 Pcloud::Client.configure(
   access_token: "your-pcloud-app-access-token",
   data_region: "EU"
+  timeout_seconds: 8 # optional integer, defaults to 8 seconds if not specified
 )
 ```
 
@@ -106,7 +107,7 @@ The `Pcloud::Folder` API is very similar:
 # Find folders by folder :id or :path:
 Pcloud::Folder.find(1)
 Pcloud::Folder.find_by(path: "/images")
-# NOTES: 
+# NOTES:
 # - `find_by` can also be used with :id, though this will take precedence over :path so pick only one or the other
 # - When using :path the folder object will have a `path` value, when finding by :id, `path` will be `nil`
 

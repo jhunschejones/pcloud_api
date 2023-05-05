@@ -2,6 +2,7 @@ RSpec.describe Pcloud::Client do
   before(:each) do
     Pcloud::Client.remove_class_variable(:@@data_region) if Pcloud::Client.class_variable_defined?(:@@data_region)
     Pcloud::Client.remove_class_variable(:@@access_token) if Pcloud::Client.class_variable_defined?(:@@access_token)
+    Pcloud::Client.remove_class_variable(:@@timeout_seconds) if Pcloud::Client.class_variable_defined?(:@@timeout_seconds)
     Pcloud::Client.remove_class_variable(:@@closest_server) if Pcloud::Client.class_variable_defined?(:@@closest_server)
   end
 
@@ -72,46 +73,69 @@ RSpec.describe Pcloud::Client do
     end
   end
 
-  describe ".region" do
+  describe ".data_region_from_config_or_env" do
     it "reads from module configuration" do
       Pcloud::Client.configure(access_token: "test-token", data_region: "EU")
-      expect(Pcloud::Client.send(:data_region)).to eq("EU")
+      expect(Pcloud::Client.send(:data_region_from_config_or_env)).to eq("EU")
     end
 
     it "reads from environment variable" do
       allow(ENV).to receive(:[]).with("PCLOUD_API_DATA_REGION").and_return("EU")
-      expect(Pcloud::Client.send(:data_region)).to eq("EU")
+      expect(Pcloud::Client.send(:data_region_from_config_or_env)).to eq("EU")
     end
 
     it "raises ConfigurationError when not configured" do
       expect {
-        Pcloud::Client.send(:data_region)
+        Pcloud::Client.send(:data_region_from_config_or_env)
       }.to raise_error(Pcloud::Client::ConfigurationError, "Missing pCloud data region")
     end
 
     it "raises ConfigurationError when set to an invalid value" do
       allow(ENV).to receive(:[]).with("PCLOUD_API_DATA_REGION").and_return("SPACE")
       expect {
-        Pcloud::Client.send(:data_region)
+        Pcloud::Client.send(:data_region_from_config_or_env)
       }.to raise_error(Pcloud::Client::ConfigurationError, 'Invalid pCloud data region, must be one of ["EU", "US"]')
     end
   end
 
-  describe ".access_token" do
+  describe ".access_token_from_config_or_env" do
     it "reads from module configuration" do
       Pcloud::Client.configure(access_token: "test-token", data_region: "EU")
-      expect(Pcloud::Client.send(:access_token)).to eq("test-token")
+      expect(Pcloud::Client.send(:access_token_from_config_or_env)).to eq("test-token")
     end
 
     it "reads from environment variable" do
       allow(ENV).to receive(:[]).with("PCLOUD_API_ACCESS_TOKEN").and_return("test-token")
-      expect(Pcloud::Client.send(:access_token)).to eq("test-token")
+      expect(Pcloud::Client.send(:access_token_from_config_or_env)).to eq("test-token")
     end
 
     it "raises ConfigurationError when not configured" do
       expect {
-        Pcloud::Client.send(:access_token)
+        Pcloud::Client.send(:access_token_from_config_or_env)
       }.to raise_error(Pcloud::Client::ConfigurationError, "Missing pCloud API access token")
+    end
+  end
+
+  describe ".timeout_seconds_from_config_or_env" do
+    it "reads from module configuration" do
+      Pcloud::Client.configure(access_token: "test-token", data_region: "EU", timeout_seconds: 60)
+      expect(Pcloud::Client.send(:timeout_seconds_from_config_or_env)).to eq(60)
+    end
+
+    it "reads from environment variable" do
+      allow(ENV).to receive(:fetch).with("PCLOUD_API_TIMEOUT_SECONDS", anything).and_return("60")
+      expect(Pcloud::Client.send(:timeout_seconds_from_config_or_env)).to eq(60)
+    end
+
+    it "sets a default value when none is provided via env var or config setting" do
+      expect(Pcloud::Client.send(:timeout_seconds_from_config_or_env)).to eq(Pcloud::Client::DEFAULT_TIMEOUT_SECONDS)
+    end
+
+    it "raises ConfigurationError when set to 0" do
+      Pcloud::Client.configure(access_token: "test-token", data_region: "EU", timeout_seconds: 0)
+      expect {
+        Pcloud::Client.send(:timeout_seconds_from_config_or_env)
+      }.to raise_error(Pcloud::Client::ConfigurationError, "Invalid pCloud API timeout seconds: cannot be set to 0")
     end
   end
 
