@@ -56,7 +56,7 @@ The `Pcloud::File` API includes:
 Pcloud::File.find(1)
 Pcloud::File.find_by(path: "/images/jack_the_cat.jpg")
 # NOTE: `find_by` can also be used with :id, though this will take precedence
-# over :path so just pick one or the other
+# over :path so pick only one or the other
 
 # Check if a file exists by :id
 Pcloud::File.exists?(1)
@@ -106,8 +106,9 @@ The `Pcloud::Folder` API is very similar:
 # Find folders by folder :id or :path:
 Pcloud::Folder.find(1)
 Pcloud::Folder.find_by(path: "/images")
-# NOTE: `find_by` can also be used with :id, though this will take precedence
-# over :path so just pick one or the other
+# NOTES: 
+# - `find_by` can also be used with :id, though this will take precedence over :path so pick only one or the other
+# - When using :path the folder object will have a `path` value, when finding by :id, `path` will be `nil`
 
 # Check if a folder exists by id
 Pcloud::Folder.exists?(1)
@@ -149,7 +150,7 @@ jack_images.contents
 
 **Params: path vs id**
 
-pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather than using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket.
+pCloud recommends using the `folder_id`, `parent_folder_id` or `file_id` params for API calls whenever possible, rather than using an exact path. Folder and file ids are static, so this will make your code less brittle to changes in the file/folder tree. You can simply look up the id for a folder in the console ahead of time and then set it in your code, similar to how you would specify an AWS S3 bucket. Note that when finding by one of these id values, the `path` value of a folder will come back as `nil`.
 
 
 **Off-label client use**
