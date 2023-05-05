@@ -1,4 +1,9 @@
-## 0.2.3 2021-12-14
+## 0.2.5 2023-05-05
+
+**Bugfix**
+  1. When passing the optipnal `recursive: true` on `Pcloud::Folder#find` or `Pcloud::Folder#find_by` methods to load all the folders contents recursively in v0.2.4, recursive contents were not correctly parsed into objects. This release fixes that bug so that the recursive file tree is all `Pcloud::File` and `Pcloud::Folder` objects.
+
+## 0.2.4 2023-05-05
 
 **Changes**
   1. You can now specify `recursive: true` on `Pcloud::Folder#find` and `Pcloud::Folder#find_by` methods to load all the folders contents recursively. Note that this may result in long request times for folders with many items in them.

@@ -23,7 +23,7 @@ module Pcloud
                   path: content_item["path"], # no path comes back from this api
                   name: content_item["name"],
                   parent_folder_id: content_item["parentfolderid"],
-                  contents: content_item["contents"], # no content comes back from this api
+                  contents: recursively_parse_contents(content_item["contents"]), # this can be `nil` if recursive is false
                   is_deleted: content_item["isdeleted"],
                   created_at: content_item["created"],
                   modified_at: content_item["modified"]
@@ -44,6 +44,39 @@ module Pcloud
               end
             end
           )
+        end
+
+        private
+
+        def recursively_parse_contents(contents)
+          return nil if contents.nil?
+          contents.map do |content_item|
+            if content_item["isfolder"]
+              Pcloud::Folder.new(
+                id: content_item["folderid"],
+                path: content_item["path"], # no path comes back from this api
+                name: content_item["name"],
+                parent_folder_id: content_item["parentfolderid"],
+                contents: recursively_parse_contents(content_item["contents"]),
+                is_deleted: content_item["isdeleted"],
+                created_at: content_item["created"],
+                modified_at: content_item["modified"]
+              )
+            else
+              Pcloud::File.new(
+                id: content_item["fileid"],
+                path: content_item["path"],
+                name: content_item["name"],
+                content_type: content_item["contenttype"],
+                category_id: content_item["category"],
+                size: content_item["size"],
+                parent_folder_id: content_item["parentfolderid"],
+                is_deleted: content_item["isdeleted"],
+                created_at: content_item["created"],
+                modified_at: content_item["modified"]
+              )
+            end
+          end
         end
       end
     end
