@@ -1,7 +1,6 @@
 require "httparty"
 require "tzinfo"
 require "json"
-require "json"
 require "uri"
 require "net/http"
 
