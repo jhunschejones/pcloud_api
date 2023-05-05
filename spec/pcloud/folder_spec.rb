@@ -571,7 +571,7 @@ RSpec.describe Pcloud::Folder do
               "contenttype" => "image/jpg",
               "category" => 1,
               "size" => 1992312,
-              "parentfolderid" => 0,
+              "parentfolderid" => 9000,
               "created" => "Sat, 25 Sep 2021 04:44:32 +0000",
               "modified" => "Sat, 25 Sep 2021 05:44:32 +0000"
             },
@@ -582,6 +582,20 @@ RSpec.describe Pcloud::Folder do
               "parentfolderid" => 9000,
               "created" => "Sun, 26 Sep 2021 21:26:06 +0000",
               "modified" => "Sun, 26 Sep 2021 22:26:06 +0000",
+              "contents" => [
+                {
+                  "isfolder" => false,
+                  "fileid" => 100200,
+                  "name" => "only_jack.jpg",
+                  "path" => "/only_jack.jpg",
+                  "contenttype" => "image/jpg",
+                  "category" => 1,
+                  "size" => 1992332,
+                  "parentfolderid" => 10000,
+                  "created" => "Sun, 24 Apr 2022 19:11:36 +0000",
+                  "modified" => "Sun, 24 Apr 2022 19:11:36 +0000"
+                },
+              ]
             },
           ]
         }
@@ -633,6 +647,9 @@ RSpec.describe Pcloud::Folder do
       expect(contents.size).to eq(2)
       expect(contents.first).to be_a(Pcloud::File)
       expect(contents.last).to be_a(Pcloud::Folder)
+      # make sure recursive folder parsing is working
+      expect(contents.last.contents.size).to eq(1)
+      expect(contents.last.contents.first).to be_a(Pcloud::File)
     end
 
     context "with invalid parameters" do
