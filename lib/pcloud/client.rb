@@ -34,7 +34,7 @@ module Pcloud
       end
 
       def generate_access_token
-        puts "=== Follow these steps to generate a pCloud app and access token: ==="
+        puts "=== Follow these steps to generate a pCloud app and access token ==="
         puts "1. Register an app at `https://docs.pcloud.com/my_apps/`"
 
         puts "2. Enter the client id and secret for the app:"
@@ -65,7 +65,9 @@ module Pcloud
 
         json_response = JSON.parse(response.body)
         raise json_response["error"] if json_response["error"]
-        puts "Done! Your access token is: #{json_response["access_token"]}"
+        puts "Done! Your access token is: \n#{json_response["access_token"]}"
+        puts "\nStore this value somewhere secure as it can be used to access your"
+        puts "pCloud account data and it will not be shown again."
       end
 
       private
