@@ -1,6 +1,8 @@
 require "httparty"
 require "tzinfo"
 require "json"
+require "uri"
+require "net/http"
 
 require "pcloud/version"
 require "pcloud/time_helper"
