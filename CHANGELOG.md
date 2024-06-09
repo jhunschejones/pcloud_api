@@ -1,3 +1,8 @@
+## 0.2.6 2024-06-09
+
+**Bugfix**
+  1. Added a missing `require "time"` statement that resulted in errors for folks building and testing the gem locally. This should not affect production behavior.
+
 ## 0.2.5 2023-05-05
 
 **Bugfix**
