@@ -1,7 +1,5 @@
 RSpec.describe Pcloud::Client do
   before(:each) do
-    WebMock.reset!
-
     Pcloud::Client.remove_class_variable(:@@data_region) if Pcloud::Client.class_variable_defined?(:@@data_region)
     Pcloud::Client.remove_class_variable(:@@access_token) if Pcloud::Client.class_variable_defined?(:@@access_token)
     Pcloud::Client.remove_class_variable(:@@timeout_seconds) if Pcloud::Client.class_variable_defined?(:@@timeout_seconds)
@@ -76,10 +74,15 @@ RSpec.describe Pcloud::Client do
   end
 
   describe ".generate_access_token" do
+    let(:httparty_response) { double(HTTParty::Response) }
+
     before do
       # silence console output from the interactive CLI
       allow(Pcloud::Client).to receive(:puts)
       allow(Pcloud::Client).to receive(:print)
+
+      allow(httparty_response).to receive(:body).and_return({ access_token: "Here's your access token!" }.to_json)
+      allow(HTTParty).to receive(:post).and_return(httparty_response)
     end
 
     it "makes the expected web request to get an access token" do
@@ -93,14 +96,14 @@ RSpec.describe Pcloud::Client do
         "EU", # user specified data region
         access_code, # access code provided by pCloud
       )
-      pcloud_post_request = stub_request(
-        :post,
-        "https://eapi.pcloud.com/oauth2_token?client_id=#{client_id}&client_secret=#{client_secret}&code=#{access_code}"
-      ).to_return(body: { access_token: "Here's your access token!" }.to_json)
+      expect(HTTParty)
+        .to receive(:post)
+        .with(
+          "https://eapi.pcloud.com/oauth2_token?client_id=#{client_id}&client_secret=#{client_secret}&code=#{access_code}",
+          { headers: { "Accept" => "application/json" } }
+        ).and_return(httparty_response)
 
       Pcloud::Client.generate_access_token
-
-      expect(pcloud_post_request).to have_been_requested
     end
   end
 
