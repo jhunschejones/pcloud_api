@@ -56,12 +56,10 @@ module Pcloud
 
         puts "6. Requesting access token from pCloud..."
         query = { client_id: client_id, client_secret: client_secret, code: access_code }
-        uri = URI.parse("https://#{region_specific_api_base}/oauth2_token?#{URI.encode_www_form(query)}")
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request["Accept"] = "application/json"
-        response = http.request(request)
+        response = HTTParty.post(
+          "https://#{region_specific_api_base}/oauth2_token?#{URI.encode_www_form(query)}",
+          headers: { "Accept" => "application/json" }
+        )
 
         json_response = JSON.parse(response.body)
         raise json_response["error"] if json_response["error"]
