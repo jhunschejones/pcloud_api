@@ -1,3 +1,9 @@
+## 0.2.7 2025-08-01
+
+**Changes**
+  1. Moved the script to generate an access token inside the gem itself so that it can now be called with `Pcloud::Client.generate_access_token`
+  2. Opened up the dependency requirements for HTTParty
+
 ## 0.2.6 2024-06-09
 
 **Bugfix**
