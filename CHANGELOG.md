@@ -1,3 +1,8 @@
+## 0.2.8 2025-11-01
+
+**Bugfix**
+  1. Fixed a bug where calling `.contents` on a truly empty folder would cause `SystemStackError`.
+
 ## 0.2.7 2025-08-01
 
 **Changes**

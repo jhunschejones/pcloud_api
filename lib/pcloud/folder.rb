@@ -65,9 +65,9 @@ module Pcloud
     # Some APIs return `nil` or `[]` for contents when a folder does actually
     # have contents. This method allows us to re-try one time if we try to get
     # the contents and find that they're missing.
-    def contents
-      return @contents if @contents_are_confirmed
-      @contents = Folder.find(id).contents
+    def contents(is_retry: false)
+      return @contents if @contents_are_confirmed || is_retry
+      @contents = Folder.find(id).contents(is_retry: true)
       @contents_are_confirmed = true
       @contents
     end

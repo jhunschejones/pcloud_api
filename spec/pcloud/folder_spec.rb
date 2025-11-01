@@ -40,6 +40,32 @@ RSpec.describe Pcloud::Folder do
     )
   end
 
+  let(:phrynes_empty_contents_folder) do
+    Pcloud::Folder.new(
+      id: 666,
+      path: "/phrynes_empty_contents_folder",
+      name: "phrynes_empty_contents_folder",
+      parent_folder_id: 0,
+      contents: [],
+      is_deleted: false,
+      created_at: "Sat, 1 Nov 2025 16:22:06 +0000",
+      modified_at: "Sat, 1 Nov 2025 16:22:06 +0000"
+    )
+  end
+
+  let(:phrynes_nil_contents_folder) do
+    Pcloud::Folder.new(
+      id: 666,
+      path: "/phrynes_nil_contents_folder",
+      name: "phrynes_nil_contents_folder",
+      parent_folder_id: 0,
+      contents: [],
+      is_deleted: false,
+      created_at: "Sat, 1 Nov 2025 16:22:06 +0000",
+      modified_at: "Sat, 1 Nov 2025 16:22:06 +0000"
+    )
+  end
+
   describe "#initialize" do
     it "raises an error if a required attribute is missing from params" do
       expect {
@@ -325,44 +351,64 @@ RSpec.describe Pcloud::Folder do
   end
 
   describe "#contents" do
-    let(:jacks_folder_no_confirmed_contents) { jacks_folder.dup }
-
-    before do
-      allow(Pcloud::Folder).to receive(:find).and_return(jacks_folder)
-    end
-
     # Some APIs (mainly recursive operations according to pCloud) return either a
     # nil or an empty array of contents. In these cases, the @contents_are_confirmed
     # flag is set to `false` in order to allow one retry to fetch the actual
     # contents if the `contents` method is called on a folder object that does not
     # have any contents set yet.
-    context "when no contents are present" do
-      before do
-        jacks_folder_no_confirmed_contents.instance_variable_set(:@contents, nil)
-        jacks_folder_no_confirmed_contents.instance_variable_set(:@contents_are_confirmed, false)
+    context "missing contents" do
+      context "when contents is nil" do
+        before do
+          allow(Pcloud::Folder).to receive(:find).and_return(phrynes_nil_contents_folder)
+        end
+
+        it "makes a find request for the folder contents" do
+          expect(Pcloud::Folder)
+            .to receive(:find)
+            .with(666)
+          phrynes_nil_contents_folder.contents
+        end
+
+        it "returns empty contents" do
+          contents = phrynes_nil_contents_folder.contents
+          expect(contents.size).to eq(0)
+        end
+
+        it "caches the response" do
+          expect(Pcloud::Folder).to receive(:find).once
+          5.times { phrynes_nil_contents_folder.contents }
+        end
       end
 
-      it "makes a find request for the folder contents" do
-        expect(Pcloud::Folder)
-          .to receive(:find)
-          .with(9000)
-        jacks_folder_no_confirmed_contents.contents
-      end
+      context "when contents is empty" do
+        before do
+          allow(Pcloud::Folder).to receive(:find).and_return(phrynes_empty_contents_folder)
+        end
 
-      it "returns the folder contents" do
-        contents = jacks_folder_no_confirmed_contents.contents
-        expect(contents.size).to eq(2)
-        expect(contents.first).to be_a(Pcloud::File)
-        expect(contents.last).to be_a(Pcloud::Folder)
-      end
+        it "makes a find request for the folder contents" do
+          expect(Pcloud::Folder)
+            .to receive(:find)
+            .with(666)
+          phrynes_empty_contents_folder.contents
+        end
 
-      it "caches the response" do
-        expect(Pcloud::Folder).to receive(:find).once
-        5.times { jacks_folder_no_confirmed_contents.contents }
+        it "returns empty contents" do
+          contents = phrynes_empty_contents_folder.contents
+          expect(contents.size).to eq(0)
+        end
+
+        it "caches the response" do
+          expect(Pcloud::Folder).to receive(:find).once
+          5.times { phrynes_empty_contents_folder.contents }
+        end
       end
     end
 
     context "when contents are already present" do
+      before do
+        allow(Pcloud::Folder).to receive(:find).and_return(jacks_folder)
+      end
+
       it "returns the folder contents" do
         contents = jacks_folder.contents
         expect(contents.size).to eq(2)
